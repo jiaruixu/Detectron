@@ -1,0 +1,25 @@
+id: detectron-faster-rcnn-train
+name: Faster RCNN training end2end
+docker-image: detectron
+
+args:
+  - id: dataset-path
+    default: /mnt/fcav/self_training/object_detection/dataset
+    help: 'path to dataset in VOC format'
+  - id: output-path
+    default: /mnt/fcav/self_training/object_detection/upperbound1
+    help: 'path to store training results'
+
+docker-volumes:
+  - host-path: "{output-path}"
+    container-path: /media/ngv/output
+    read-only: False
+  - host-path: "{dataset-path}"
+    container-path: /mnt/fcav/self_training/object_detection/dataset
+
+logfile-path: "{output-path}/e2e-training-logs.txt"
+
+command: |
+  python2 tools/train_net.py
+  --cfg configs/12_2017_baselines/e2e_faster_rcnn_X-101-64x4d-FPN_1x.yaml
+  OUTPUT_DIR /media/ngv/output

@@ -15,11 +15,6 @@ category_item_id = 0
 image_id = 20180000000
 annotation_id = 0
 
-TXT_FOLDER_MAP = {
-    'train': '/mnt/fcav/failing_to_learn/datasets/Sim200k/main/training.txt',
-    'val': '/mnt/fcav/failing_to_learn/datasets/Sim200k/main/testing.txt',
-}
-
 def addCatItem(name):
     global category_item_id
     category_item = dict()
@@ -115,8 +110,7 @@ def parseXmlFiles(xml_path, txt_dirs):
                     continue
 
                 if elem.tag == 'filename':
-                    # file_name = elem.text
-                    file_name = ('%s.jpg') % line.strip()
+                    file_name = elem.text
                     if file_name in category_set:
                         raise Exception('file_name duplicated')
 
@@ -180,9 +174,7 @@ def parseXmlFiles(xml_path, txt_dirs):
 
 if __name__ == '__main__':
     xml_path = '/mnt/fcav/PASCAL/repro_200k_filter/VOC2012/Annotations'
-    #txt_dirs = '/mnt/fcav/failing_to_learn/datasets/Sim200k/main/training.txt'
-    # '/mnt/fcav/failing_to_learn/datasets/Sim200k/main/testing.txt'
-    for set in ['train', 'val']:
-        json_file = '/mnt/data/object_detection/fasterrcnn_GTA/GTA_Pascal_format/Annotations/instances_caronly_%s.json' % set
-        parseXmlFiles(xml_path, TXT_FOLDER_MAP[set])
-        json.dump(coco, open(json_file, 'w'))
+    txt_dirs = '/mnt/fcav/failing_to_learn/datasets/Sim200k/main/testing.txt'
+    json_file = '/mnt/data/object_detection/fasterrcnn_GTA/GTA_Pascal_format/Annotations/instances_val.json'
+    parseXmlFiles(xml_path, txt_dirs)
+    json.dump(coco, open(json_file, 'w'))
