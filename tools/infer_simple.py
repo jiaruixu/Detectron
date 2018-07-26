@@ -46,6 +46,7 @@ import detectron.datasets.dummy_datasets as dummy_datasets
 import detectron.utils.c2 as c2_utils
 import detectron.utils.vis as vis_utils
 
+
 c2_utils.import_detectron_ops()
 
 # OpenCL may be enabled by default in OpenCV3; disable it because it's not
@@ -96,13 +97,61 @@ def parse_args():
         '--output-ext',
         dest='output_ext',
         help='output image file format (default: pdf)',
-        default='pdf',
+        default='png',
         type=str
     )
+    #parser.add_argument(
+    #    '--wirte-to-txt',
+    #    dest='write_to_txt',
+    #    help='whether write the results to txt or not',
+    #    action='store_true'
+    #)
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
     return parser.parse_args()
+
+def _write_to_txt(boxes, segms, keypoints, im_name, dataset):
+    #output_txt_dir = os.path.join(args.output_dir, 'txtFiles')
+    output_caronly_dir = os.path.join(args.output_dir, 'txtFilesCarOnly')
+
+    #if not os.path.exists(output_txt_dir):
+    #    os.makedirs(output_txt_dir)
+
+    if not os.path.exists(output_caronly_dir):
+        os.makedirs(output_caronly_dir)
+
+    if isinstance(boxes, list):
+        boxes, _, _, classes = vis_utils.convert_from_cls_format(
+            boxes, segms, keypoints)
+
+    if (boxes is None or boxes.shape[0] == 0) and not args.out_when_no_box:
+        return
+
+    image_name, _ = os.path.splitext(os.path.basename(im_name))
+    result_file_car_only = open(
+        os.path.join(output_caronly_dir,
+                     os.path.basename(im_name).replace(args.image_ext, 'txt')),
+        'w')
+    #result_file = open(
+    #    os.path.join(output_txt_dir,
+    #                 os.path.basename(im_name).replace(args.image_ext, 'txt')),
+    #    'w')
+    for i in range(boxes.shape[0]):
+        bbox = boxes[i, :4]
+        score = boxes[i, -1]
+        label = dataset.classes[classes[i]] if dataset is not None else \
+            'id{:d}'.format(classes[i])
+
+        #result_file.write(
+        #    "%s -1 -1 -10 %.3f %.3f %.3f %.3f -1 -1 -1 -1000 -1000 -1000 -10 %.8f\n"
+        #    % (label, bbox[0], bbox[1], bbox[2], bbox[3], score))
+
+        if classes[i] == 3:
+            label = 'Car'
+            result_file_car_only.write(
+                "%s -1 -1 -10 %.3f %.3f %.3f %.3f -1 -1 -1 -1000 -1000 -1000 -10 %.8f\n"
+                 % (label, bbox[0], bbox[1], bbox[2], bbox[3], score))
 
 
 def main(args):
@@ -127,8 +176,9 @@ def main(args):
         im_list = [args.im_or_folder]
 
     for i, im_name in enumerate(im_list):
+        output_image_dir = os.path.join(args.output_dir, 'images')
         out_name = os.path.join(
-            args.output_dir, '{}'.format(os.path.basename(im_name) + '.' + args.output_ext)
+            output_image_dir, '{}'.format(os.path.basename(im_name) + '.' + args.output_ext)
         )
         logger.info('Processing {} -> {}'.format(im_name, out_name))
         im = cv2.imread(im_name)
@@ -147,21 +197,24 @@ def main(args):
                 'rest (caches and auto-tuning need to warm up)'
             )
 
-        vis_utils.vis_one_image(
-            im[:, :, ::-1],  # BGR -> RGB for visualization
-            im_name,
-            args.output_dir,
-            cls_boxes,
-            cls_segms,
-            cls_keyps,
-            dataset=dummy_coco_dataset,
-            box_alpha=0.3,
-            show_class=True,
-            thresh=0.7,
-            kp_thresh=2,
-            ext=args.output_ext,
-            out_when_no_box=args.out_when_no_box
-        )
+        # vis_utils.vis_one_image(
+        #    im[:, :, ::-1],  # BGR -> RGB for visualization
+        #    im_name,
+        #    output_image_dir,
+        #    cls_boxes,
+        #    cls_segms,
+        #    cls_keyps,
+        #    dataset=dummy_coco_dataset,
+        #    box_alpha=0.3,
+        #    show_class=True,
+        #    thresh=0.7,
+        #    kp_thresh=2,
+        #    ext=args.output_ext,
+        #    out_when_no_box=args.out_when_no_box
+        #)
+
+        _write_to_txt(cls_boxes, cls_segms, cls_keyps, im_name, dummy_coco_dataset)
+
 
 
 if __name__ == '__main__':
