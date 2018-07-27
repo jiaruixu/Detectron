@@ -24,7 +24,5 @@ WORKDIR /detectron
 # Set up Python modules
 RUN make
 
-ENV CONTAINER_FN_PATH /detectron/container-fns
-
 # [Optional] Build custom ops
 RUN make ops
