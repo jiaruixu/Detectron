@@ -35,7 +35,7 @@ TRAIN:
   BATCH_SIZE_PER_IM: 512
   RPN_PRE_NMS_TOP_N: 2000  # Per FPN level
 TEST:
-  DATASETS: ('voc_GTA_caronly_val',)
+  DATASETS: ('cityscapes_caronly_val',)
   SCALE: 800
   MAX_SIZE: 1921
   NMS: 0.5
